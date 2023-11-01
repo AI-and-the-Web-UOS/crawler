@@ -13,8 +13,6 @@ This project was part of the course "AI and the Web" at _University of Osnabruec
 - [💻 Usage](#-usage)
 - [💾 Structure](#-structure)
 - [🚫 Limitations](#-limitations)
-- [📊 Poster](#-poster)
-- [📃 Paper](#-paper)
 - [📝 Authors](#-authors)
 - [📎 License](#-license)
 
