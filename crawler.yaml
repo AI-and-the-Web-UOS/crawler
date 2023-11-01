@@ -1,0 +1,21 @@
+name: crawler
+channels:
+  - apple
+  - conda-forge
+  - esri
+dependencies:
+  - python=3.9  ## specify desired version
+  - pip
+  - ipykernel
+
+  ## PyPI packages
+  - pip:
+    - ipykernel
+    - pandas
+    - bs4
+    - regex
+    - mwxml
+    - requests
+    - validators
+    - transformers
+
