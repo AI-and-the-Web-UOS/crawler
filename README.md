@@ -1,7 +1,7 @@
 # Single-server crawler
 
 ## Project for AI and the Web
-This is a simple web crawler that retrieves H1-headings from all directly or indirectly linked HTML-pages on the same server starting from a single URL.
+This is a simple web crawler that retrieves H1-headings and content from all directly or indirectly linked HTML-pages on the same server starting from a single URL.
 This project was part of the course "AI and the Web" at _University of Osnabrueck_.
 <p align="right">(<a href="#top">back to top</a>)</p>
 
