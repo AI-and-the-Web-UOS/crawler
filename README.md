@@ -1,90 +1,93 @@
-# A single-server HTML-page crawler for webpage headings
+# Single-server crawler
 
 ## Project for AI and the Web
-
 This is a simple web crawler that retrieves H1-headings from all directly or indirectly linked HTML-pages on the same server starting from a single URL.
 This project was part of the course "AI and the Web" at _University of Osnabrueck_.
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 ## 📖 Table of Contents
-
-- [❓ Why?](#-why)
-- [✨ Features](#-features)
-- [💻 Usage](#-usage)
-- [💾 Structure](#-structure)
-- [🚫 Limitations](#-limitations)
-- [📝 Authors](#-authors)
-- [📎 License](#-license)
-
-  <p align="right">(<a href="#top">back to top</a>)</p>
+- [Single-server crawler](#single-server-crawler)
+  - [Project for AI and the Web](#project-for-ai-and-the-web)
+  - [📖 Table of Contents](#-table-of-contents)
+  - [❓ Why?](#-why)
+  - [✨ Features of the crawler](#-features-of-the-crawler)
+  - [💻 Usage](#-usage)
+  - [💾 Structure](#-structure)
+  - [🚫 Limitations](#-limitations)
+  - [📝 Authors](#-authors)
+  - [📎 License](#-license)
 
 ## ❓ Why?
-
-To implement a small-scale search engine the pages from a specified server need to be crawled to provide enable an information search based on semantic similarity of the headings and a relevance scoring.
+To distribute the load of handeling user requests and doing the actual rankings of websites, we decided to split the search process in different application. On the one hand, there is the server that handles incoming requests and calculates the vectors. On the other hand, there is the application which loads the existing website data from a MongoDB database and matches the entries in this database with the user query, to return optimal results. Lastly there is the web crawler implemented in this repo that updates the search index database.
+<br/> 
+<p align="center">
+<img src="graphics/SearchEngine.png" alt="Structure of our search engine" align="middle" width="700" /> 
+</p>
+<br/> 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
-## ✨ Features
-
+## ✨ Features of the crawler
 From a single URL the crawler can extract both headers and all linked URLs on an HTML page and evaluate the linked URLs for validity, response type (only HTML responses are crawled), the domain (all links to different servers are ignored) and whether the URL has been visited and whether it needs to be added to the backlog for crawling.
 TO BE IMPLEMENTED: The headers from the webpages are then embedded using the multi-language BERT model _LaBSE_ by Google to compare the semantic similarity of search requests and the headers.
-<br/>
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 ## 💻 Usage
 
 1. Clone the repository or download the code.
 
-```
+```bash
 git clone https://github.com/AI-and-the-Web-UOS/crawler/
 cd crawler
 ```
 
 2. Install the required Python packages.
 
- ```
+```bash
 pip install -r requirements.txt
 ```
-
 Or create a conda environment with the required packages.
 
-```
+```bash
 conda  env create -n crawler -f crawler.yaml
 conda activate crawler 
 ```
 
-3. TO BE IMPLEMENTED: Set up your MongoDB server and replace the connection details in the code with your own.
+3. Set up your MongoDB server and replace the connection details in the code with your own.
 
 4. Start the crawler.
 
-```
+```bash
 python crawler.py
 ```
-
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 ## 💾 Structure
 <!-- Project Structure -->
+
     .
-    ├── README.md
-    ├── crawler.yaml
-    ├── requirements.txt
-    ├── crawler.py                              # The file with the actual crawler
-    │── .gitignore
+    │── graphics
+    │     └── SearchEngine.png
+    │── README.md
+    │── requirements.txt
+    │── crawler.yaml                # yaml for creating conda env
+    └── crawler.py                  # The file containing the crawler
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 ## 🚫 Limitations
+Efficiently managing server loads is a critical aspect of web service optimization. One approach to achieve better load management is to assign specific clusters of websites to individual servers. By leveraging unsupervised clustering techniques on the vector representations of websites stored in the database, we can group similar websites together. Each server would then be responsible for serving requests related to websites within its designated cluster. This strategy ensures that servers are specialized in handling a specific subset of websites, minimizing the risk of overloading and optimizing resource utilization. Additionally, it enhances response times for users as they are directed to servers tailored to their search context. Such an approach not only improves server load management but also enhances the overall performance and scalability of the web service. But due to the scope of the project, this feature was not implemented.
 
-The crawler is limited to same-server webpages and HTML-content. For the search it only retrieves H1-headings within the HTML and not the full page-content.
+The crawler is limited to same-server webpages and HTML-content.
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 ## 📝 Authors
+[Cornelius Wolff](mailto:cowolff@uos.de) (main maintainer of the repo)<br/>
+[Christine Arnold](mailto:carnoldt@uni-osnabrueck.de)<br/>
+[Jonah Schlie](mailto:jschlie@uni-osnabrueck.de)<br/>
 
-[Christine Arnoldt](mailto:carnoldt@uos.de)<br/>
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 ## 📎 License
-
-Copyright 2023 Christine Arnoldt
+Copyright 2022 Cornelius Wolff, Christine Arnoldt, Jonah Schlie
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
