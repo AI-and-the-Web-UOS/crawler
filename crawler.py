@@ -204,7 +204,7 @@ class WebCrawler:
             logging.info('Found %s non-valid urls: %s', len(self.urls_invalid),self.urls_invalid)
         if len(self.urls_non_html) > 0:
             logging.info('Found %s non-HTML urls: %s',len(self.urls_non_html), self.urls_non_html)
-        logging.info('Finished crawling - Results:\n%s',self.page_results)
+        logging.info('Finished crawling')
 
 if __name__ == '__main__':
     # mongoDB connection
