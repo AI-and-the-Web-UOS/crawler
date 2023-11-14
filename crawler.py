@@ -32,7 +32,7 @@ class WebCrawler:
         urls_visited: A list of visited URLs that have been crawled already.
         urls_invalid: A list of invalid URLs for logging.
         urls_non_html: A list of non-HTML URLs for logging.
-        page_results: A dict with URLs, headers and vectors to be added to the MongoDB.
+        page_results: A list of dicts with URLs, headers, vectors, content and date to be added to the MongoDB.
     """
     def __init__(self, urls: list):
         self.urls_backlog = urls
@@ -52,7 +52,7 @@ class WebCrawler:
             url_content: The extracted HTML content from the page as a string.
         """
         tic()
-        url_content = session.get(url).text
+        url_content = session.get(url, timeout=0.1).text
         logging.info(msg=f'Getting HTML content in {toc()} s')
         return url_content
 
@@ -67,13 +67,14 @@ class WebCrawler:
         Returns:
             text: A single string with all p-tagged sections from the web page.
         """
-        tic()
+        #tic()
         try:
+            # merge all paragraphs to single string
             soup = BeautifulSoup(url_content,'html.parser')
             text = ''
             for p in soup.find_all('p'):
                 text += p.text
-            logging.info(msg=f'Get paragraph content of page in {toc()} s')
+            #logging.info(msg=f'Get paragraph content of page in {toc()} s')
             return text
         except Exception as e:
             logging.exception('Could not extract paragraphs from HTML. Returning HTML text. %s',e)
@@ -89,13 +90,14 @@ class WebCrawler:
         Returns:
             text: A single string with all H1-headers from the web page.
         """
-        tic()
+        #tic()
         try:
+            # merge all h1 headers to single string
             soup = BeautifulSoup(url_content,'html.parser')
             text = ''
             for h1 in soup.find_all('h1'):
                 text += h1.text
-            logging.info(msg=f'Getting headers of page in {toc()} s')
+            #logging.info(msg=f'Getting headers of page in {toc()} s')
             return text
         except Exception as e:
             logging.exception('Could not extract h1 from HTML. Returning HTML text. %s',e)
@@ -118,17 +120,18 @@ class WebCrawler:
         tic()
         soup = BeautifulSoup(html, 'html.parser')
         for link in soup.find_all('a'):
+            # find all links
             path = link.get('href')
+            # validate if url is valid, if not try to join with base and check again
             if not validators.url(path):
                 path = urljoin(url, path)
-
             if validators.url(path):
                 yield path
             else:
                 self.urls_invalid.append(path)
         logging.info(msg=f'Getting URLs linked on page in {toc()} s')
 
-    def add_new_url(self, url):
+    def add_new_url(self, url, session):
         """
         Evaluating if a URL is already in the backlog, has been visited previously as well as
         whether the domain is the same as the domain of the start page and whether the content is an
@@ -138,11 +141,10 @@ class WebCrawler:
         Args:
             url: The URL found on a webpage.
         """
+        # check if page is html, new, valid and on same server
         if url not in self.urls_visited and url not in self.urls_backlog and \
             url not in self.urls_invalid and urlparse(url).netloc == server_domain:
-            s = requests.Session()
-            s.headers = req_header
-            if 'text/html' in s.head(url).headers['Content-Type']:
+            if 'text/html' in session.head(url).headers['Content-Type']:
                 self.urls_backlog.append(url)
             else:
                 self.urls_non_html.append(url)
@@ -158,9 +160,7 @@ class WebCrawler:
         Returns:
             vectorizer.vectors: A list with the vectorization of the text.
         """
-        tic()
         vectorizer.run([text])
-        logging.info(msg=f'Calculating vector in {toc()} seconds')
         return vectorizer.vectors
 
     def crawl(self, url):
@@ -170,17 +170,17 @@ class WebCrawler:
         Args:
             url: The URL to crawl.
         """
+        # create session, set header, get html
         s = requests.Session()
         s.headers = req_header
         html = self.get_url(url, session = s)
+        # search for linked pages and add new to backlog
         for url in self.get_links(url, html):
-            self.add_new_url(url)
+            self.add_new_url(url, session = s)
+        # add extracted content to page_results
         headers = str(self.get_headers(html))
         content = str(self.get_content(html))
         vector = self.calc_vector(text=headers, vectorizer=vect)
-        print(headers)
-        print(content)
-
         crawled_page_result = {'title': headers, 'content': content, 'added': datetime.now(),\
             'url': url, 'vector': vector}
         self.page_results.append(crawled_page_result)
@@ -199,6 +199,7 @@ class WebCrawler:
                 logging.critical('Failed crawling %s.\n%s', url, e, exc_info=True)
             finally:
                 self.urls_visited.append(url)
+
         if len(self.urls_invalid) > 0:
             logging.info('Found %s non-valid urls: %s', len(self.urls_invalid),self.urls_invalid)
         if len(self.urls_non_html) > 0:
@@ -206,10 +207,13 @@ class WebCrawler:
         logging.info('Finished crawling - Results:\n%s',self.page_results)
 
 if __name__ == '__main__':
+    # mongoDB connection
     client = MongoClient('mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS\
         =2000&appName=mongosh+2.0.2')
     db = client['searchDatabase']
     websiteCollection = db['Website']
+
+    # define objects and variables
     vect = Vectorizer('distilbert-base-multilingual-cased')
     start_url = 'https://vm009.rz.uos.de/crawl/index.html'
     server_domain = urlparse(start_url).netloc
@@ -219,7 +223,8 @@ if __name__ == '__main__':
     req_header = {'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:109.0) \
         Gecko/20100101 Firefox/119.0','Accept':'text/html,application/xhtml+xml,application/xml;\
             q=0.9,image/avif,image/webp,*/*;q=0.8'}
-
     crawler = WebCrawler(urls=[start_url])
+
+    # run crawler and push results to mongoDB
     crawler.run()
     x = websiteCollection.insert_many(crawler.page_results)
