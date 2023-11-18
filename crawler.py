@@ -222,7 +222,9 @@ class WebCrawler:
                 self.urls_visited.append(url)
             except Exception as e:
                 if self.retrials.count(url) >= 3:
-                    raise RuntimeError(f"Failed crawling {url} more than three times. Not retrying") from e
+                    print(self.urls_backlog)
+                    logging.error(f"Failed crawling {url} more than three times. Not retrying. Continuing with next url.",exc_info=e)
+                    continue
                 else:
                     self.urls_backlog.append(url)
                     self.retrials.append(url)
