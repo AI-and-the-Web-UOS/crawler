@@ -1,8 +1,7 @@
 # Single-server crawler
 
 ## Project for AI and the Web
-This is a simple web crawler that retrieves H1-headings and content from all directly or indirectly linked HTML-pages on the same server starting from a single URL.
-This project was part of the course "AI and the Web" at _University of Osnabrueck_.
+This is a simple web crawler that retrieves H1-headings and content from all directly or indirectly linked HTML-pages on the same server starting from a single URL. It embedds the headers and posts all results to a mongoDB. This project was part of the course "AI and the Web" at _University of Osnabrueck_.
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 ## 📖 Table of Contents
@@ -27,7 +26,7 @@ To distribute the load of handeling user requests and doing the actual rankings 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 ## ✨ Features of the crawler
-From a single URL the crawler can extract both headers and all linked URLs on an HTML page and evaluate the linked URLs for validity, response type (only HTML responses are crawled), the domain (all links to different servers are ignored) and whether the URL has been visited and whether it needs to be added to the backlog for crawling. The headers from the webpages are then embedded using the multi-language DistilBERT model to compare the semantic similarity of search requests and the headers.
+From a single URL the crawler can extract both headers, content (paragraphs) and all linked URLs on an HTML page and evaluate the linked URLs for validity, response type (only HTML responses are crawled), the domain (all links to different servers are ignored) and whether the URL has been visited and whether it needs to be added to the backlog for crawling. The headers from the webpages are then embedded using the multi-language DistilBERT model to compare the semantic similarity of search requests and the headers.
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 ## 💻 Usage
