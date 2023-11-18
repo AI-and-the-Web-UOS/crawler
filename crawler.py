@@ -40,6 +40,7 @@ class WebCrawler:
         self.urls_invalid = []
         self.urls_non_html = []
         self.page_results = []
+        self.retrials = []
 
     def get_url(self, url: str, session: requests.Session) -> str:
         """
@@ -50,9 +51,15 @@ class WebCrawler:
 
         Returns:
             url_content: The extracted HTML content from the page as a string.
+        
+        Raises:
+            HTTPError: if request returns an error, it is raised
         """
         tic()
-        url_content = session.get(url, timeout=0.1).text
+        response = session.get(url, timeout=1)
+        # check for HTML errors
+        response.raise_for_status()
+        url_content = response.text
         logging.info(msg=f'Getting HTML content in {toc()} s')
         return url_content
 
@@ -76,8 +83,8 @@ class WebCrawler:
                 text += p.text
             #logging.info(msg=f'Get paragraph content of page in {toc()} s')
             return text
-        except Exception as e:
-            logging.exception('Could not extract paragraphs from HTML. Returning HTML text. %s',e)
+        except Exception:
+            logging.exception('Could not extract paragraphs from HTML. Returning HTML text.')
             return url_content
 
     def get_headers(self, url_content):
@@ -95,12 +102,15 @@ class WebCrawler:
             # merge all h1 headers to single string
             soup = BeautifulSoup(url_content,'html.parser')
             text = ''
+            # append title of webpage
+            text += (soup.title.text)
+            # get all h1 headings and append
             for h1 in soup.find_all('h1'):
                 text += h1.text
             #logging.info(msg=f'Getting headers of page in {toc()} s')
             return text
-        except Exception as e:
-            logging.exception('Could not extract h1 from HTML. Returning HTML text. %s',e)
+        except Exception:
+            logging.exception('Could not extract h1 from HTML. Returning HTML text.')
             return url_content
 
     def get_links(self, url, html):
@@ -149,7 +159,7 @@ class WebCrawler:
             else:
                 self.urls_non_html.append(url)
 
-    def calc_vector(self, text: str, vectorizer):
+    def calc_vector(self, text: str, vectorizer) -> list:
         """
         Creating a vector for the input text (heading of a web page).
         
@@ -160,8 +170,13 @@ class WebCrawler:
         Returns:
             vectorizer.vectors: A list with the vectorization of the text.
         """
-        vectorizer.run([text])
-        return vectorizer.vectors
+        try:
+            vectorizer.run([text])
+            # get last vector (most recent vectorization request)
+            vector = vectorizer.vectors[-1].tolist()
+        except Exception:
+            logging.error("Could not create vector. %s")
+        return vector
 
     def crawl(self, url):
         """
@@ -170,20 +185,29 @@ class WebCrawler:
         Args:
             url: The URL to crawl.
         """
-        # create session, set header, get html
-        s = requests.Session()
-        s.headers = req_header
-        html = self.get_url(url, session = s)
-        # search for linked pages and add new to backlog
-        for url in self.get_links(url, html):
-            self.add_new_url(url, session = s)
-        # add extracted content to page_results
-        headers = str(self.get_headers(html))
-        content = str(self.get_content(html))
-        vector = self.calc_vector(text=headers, vectorizer=vect)
-        crawled_page_result = {'title': headers, 'content': content, 'added': datetime.now(),\
-            'url': url, 'vector': vector}
-        self.page_results.append(crawled_page_result)
+        try:
+            # create session, set header, get html
+            s = requests.Session()
+            s.headers = req_header
+            html = self.get_url(url, session = s)
+        except Exception as e:
+            raise RuntimeError("Crawler failed getting HTML content.") from e
+        try:
+            # search for linked pages and add new to backlog
+            for url in self.get_links(url, html):
+                self.add_new_url(url, session = s)
+            # add extracted content to page_results
+            headers = str(self.get_headers(html))
+            content = str(self.get_content(html))
+            vector = self.calc_vector(text=headers, vectorizer=vect)
+        except Exception as e:
+            raise RuntimeError("Crawler failed preparing results for page.") from e
+        try:
+            crawled_page_result = {'title': headers, 'content': content, 'added': datetime.now(),\
+                'url': url, 'vector': vector}
+            self.page_results.append(crawled_page_result)
+        except Exception as e:
+            raise RuntimeError("Crawler failed adding results to list.") from e
 
     def run(self):
         """
@@ -195,10 +219,14 @@ class WebCrawler:
             logging.info(msg=f'Crawling {url}')
             try:
                 self.crawl(url)
-            except Exception as e:
-                logging.critical('Failed crawling %s.\n%s', url, e, exc_info=True)
-            finally:
                 self.urls_visited.append(url)
+            except Exception as e:
+                if self.retrials.count(url) >= 3:
+                    raise RuntimeError(f"Failed crawling {url} more than three times. Not retrying") from e
+                else:
+                    self.urls_backlog.append(url)
+                    self.retrials.append(url)
+                    logging.error(msg=f"Could not crawl {url}. Retrying at later point in time.")
 
         if len(self.urls_invalid) > 0:
             logging.info('Found %s non-valid urls: %s', len(self.urls_invalid),self.urls_invalid)
