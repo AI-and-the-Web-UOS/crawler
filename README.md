@@ -80,14 +80,14 @@ The crawler is limited to same-server webpages and HTML-content.
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 ## 📝 Authors
-[Cornelius Wolff](mailto:cowolff@uos.de) (main maintainer of the repo)<br/>
-[Christine Arnoldt](mailto:carnoldt@uni-osnabrueck.de)<br/>
+[Christine Arnoldt](mailto:carnoldt@uni-osnabrueck.de) (main maintainer of the crawler repo)<br/>
 [Jonah Schlie](mailto:jschlie@uni-osnabrueck.de)<br/>
+[Cornelius Wolff](mailto:cowolff@uos.de)<br/>
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 ## 📎 License
-Copyright 2022 Cornelius Wolff, Christine Arnoldt, Jonah Schlie
+Copyright 2022 Christine Arnoldt, Jonah Schlie, Cornelius Wolff
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
