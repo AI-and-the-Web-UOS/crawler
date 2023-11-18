@@ -80,7 +80,7 @@ The crawler is limited to same-server webpages and HTML-content.
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 ## 📝 Authors
-[Christine Arnoldt](mailto:carnoldt@uni-osnabrueck.de) (main maintainer of the crawler repo)<br/>
+[Christine Arnoldt](mailto:carnoldt@uni-osnabrueck.de) (main maintainer of the repo)<br/>
 [Jonah Schlie](mailto:jschlie@uni-osnabrueck.de)<br/>
 [Cornelius Wolff](mailto:cowolff@uos.de)<br/>
 
