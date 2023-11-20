@@ -104,6 +104,7 @@ class WebCrawler:
             text = ''
             # append title of webpage
             text += (soup.title.text)
+            text += " - "
             # get all h1 headings and append
             for h1 in soup.find_all('h1'):
                 text += h1.text
