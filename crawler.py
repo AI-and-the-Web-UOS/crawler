@@ -14,6 +14,8 @@ from sent2vec.vectorizer import Vectorizer
 from pymongo import MongoClient
 from ttictoc import tic, toc
 
+from database import WebsiteDatabase
+
 logging.basicConfig(format='%(asctime)s_%(levelname)s: %(message)s', level=logging.INFO)
 
 class WebCrawler:
@@ -239,10 +241,10 @@ class WebCrawler:
 
 if __name__ == '__main__':
     # mongoDB connection
-    client = MongoClient('mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS\
-        =2000&appName=mongosh+2.0.2')
-    db = client['searchDatabase']
-    websiteCollection = db['Website']
+    # client = MongoClient('mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS\
+    #     =2000&appName=mongosh+2.0.2')
+    # db = client['searchDatabase']
+    # websiteCollection = db['Website']
 
     # define objects and variables
     vect = Vectorizer('distilbert-base-multilingual-cased')
@@ -258,4 +260,6 @@ if __name__ == '__main__':
 
     # run crawler and push results to mongoDB
     crawler.run()
-    x = websiteCollection.insert_many(crawler.page_results)
+    database = WebsiteDatabase()
+    database.insert_data(crawler.page_results)
+    # x = websiteCollection.insert_many(crawler.page_results)
