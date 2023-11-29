@@ -195,8 +195,8 @@ class WebCrawler:
             raise RuntimeError("Crawler failed getting HTML content.") from e
         try:
             # search for linked pages and add new to backlog
-            for url in self.get_links(url, html):
-                self.add_new_url(url, session = s)
+            for current_url in self.get_links(url, html):
+                self.add_new_url(current_url, session = s)
             # add extracted content to page_results
             headers = str(self.get_headers(html))
             content = str(self.get_content(html))
